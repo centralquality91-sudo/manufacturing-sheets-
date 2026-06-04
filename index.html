@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Registry System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        /* Professional Corporate Theme */
+        :root {
+            --primary: #0f4c81; 
+            --primary-hover: #0a365c;
+            --bg-body: #f4f7f9;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e1e4e8;
+            --table-header: #f8f9fa;
+            --success: #28a745;
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 1100px;
+            position: relative;
+        }
+
+        /* Top Header Area */
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 { margin: 0; color: var(--primary); font-size: 1.5rem; font-weight: 600; }
+
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-qr {
+            background: var(--text-main);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        #saveIndicator {
+            background: var(--success);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; }
+        .tab-btn {
+            padding: 10px 20px;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { background: #e9ecef; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Form Controls */
+        .form-group {
+            display: flex; gap: 15px; align-items: center; background: var(--bg-body);
+            padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color); flex-wrap: wrap;
+        }
+
+        .input-block { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;}
+        select, input[type="text"] {
+            padding: 10px 15px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none;
+        }
+        select:focus, input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1); }
+
+        .btn {
+            padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: 500; font-size: 0.95rem; height: 42px; margin-top: auto;
+        }
+        .btn:hover { background: var(--primary-hover); }
+
+        /* Professional Table - Fixed Layout */
+        .table-responsive { width: 100%; overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; }
+        th, td { 
+            padding: 14px 16px; border-bottom: 1px solid var(--border-color); 
+            border-right: 1px solid var(--border-color); vertical-align: top; 
+            word-wrap: break-word; overflow-wrap: break-word;
+        }
+        th:last-child, td:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        th { background: var(--table-header); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 600; }
+
+        [contenteditable="true"] {
+            min-height: 40px; outline: none; padding: 8px; border-radius: 4px; transition: background 0.2s;
+            white-space: pre-wrap; background: #fafbfc; border: 1px dashed transparent;
+        }
+        [contenteditable="true"]:focus { background: #ffffff; border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+        .id-cell { font-weight: 600; color: var(--primary); background: var(--table-header); text-align: center;}
+
+        /* Photo Buttons */
+        .photo-actions { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .action-btn {
+            background: var(--bg-body); border: 1px solid var(--border-color); padding: 6px 10px;
+            border-radius: 4px; font-size: 0.8rem; cursor: pointer; display: inline-flex;
+            align-items: center; font-weight: 500; color: var(--text-main);
+        }
+        .action-btn:hover { background: #e1e4e8; }
+        .action-btn input[type="file"] { display: none; } 
+
+        .img-preview { max-width: 100%; max-height: 150px; border-radius: 6px; margin-top: 10px; border: 1px solid var(--border-color); display: block; }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 30px; font-style: italic; }
+
+        /* ================= MODALS (Camera & QR) ================= */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center;
+        }
+        .modal-content h3 { margin-top: 0; color: var(--primary); }
+        
+        /* Camera specifics */
+        #liveVideo { width: 100%; background: #000; border-radius: 8px; margin-bottom: 15px; }
+        .modal-btn-group { display: flex; gap: 10px; justify-content: center; }
+        .btn-snap { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;}
+        .btn-close { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;}
+        
+        /* QR specifics */
+        #qrcode-container { display: flex; justify-content: center; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="header-area">
+            <h1>Register System</h1>
+            <div class="header-actions">
+                <div id="saveIndicator">✓ Saved</div>
+                <button class="btn-qr" id="qrGeneratorBtn" onclick="openQrModal()">📱 Generate QR Link</button>
+            </div>
+        </div>
+
+        <div class="tabs" id="navigationTabs">
+            <button class="tab-btn active" id="btn-entry" onclick="switchTab('entry')">1. Registration Entry</button>
+            <button class="tab-btn" id="btn-output" onclick="switchTab('output')">2. Master Dashboard</button>
+        </div>
+
+        <div id="page-entry" class="page active">
+            <div class="form-group">
+                <div class="input-block">
+                    <label>Select Category</label>
+                    <select id="regCategory" onchange="updateHeaderLabel()">
+                        <option value="Job No">Job No</option>
+                        <option value="Tool">Tool</option>
+                        <option value="General">General</option>
+                        <option value="Machine">Machine</option>
+                        <option value="Improvement">Improvement</option>
+                    </select>
+                </div>
+                <div class="input-block">
+                    <label id="lblId">Enter ID / Number</label>
+                    <input type="text" id="regId" placeholder="e.g., 1898/20 HV">
+                </div>
+                <button class="btn" onclick="createOrLoadRecord()">Load / Create Item</button>
+            </div>
+
+            <div id="entryWorkspace" style="display: none;">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th id="colHeaderId" style="width: 18%;">Item No.</th>
+                                <th style="width: 33%;">Detail (Auto-saves)</th>
+                                <th style="width: 22%;">Photo</th>
+                                <th style="width: 27%;">Remark (Auto-saves)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entryTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-output" class="page">
+            <div class="form-group">
+                <div class="input-block">
+                    <label>View Registered Item</label>
+                    <select id="outputSelect" onchange="renderOutputTable(this.value)">
+                        <option value="">-- No Items Registered --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="outColHeaderId" style="width: 18%;">ID / Number</th>
+                            <th style="width: 33%;">Detail</th>
+                            <th style="width: 22%;">Photo</th>
+                            <th style="width: 27%;">Remark</th>
+                        </tr>
+                    </thead>
+                    <tbody id="outputTableBody">
+                        <tr><td colspan="4" class="empty-state">Select an item from the dropdown to view its details.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="cameraModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Live Camera</h3>
+            <video id="liveVideo" autoplay playsinline></video>
+            <div class="modal-btn-group">
+                <button class="btn-snap" onclick="takeSnapshot()">📸 Snap Photo</button>
+                <button class="btn-close" onclick="closeCameraModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="qrModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Scan QR Code</h3>
+            <p style="color: #666; font-size: 0.9rem;">Scan this to open the Registration Page on your mobile device.</p>
+            <div id="qrcode-container"></div>
+            <button class="btn-close" onclick="closeQrModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Check URL for QR Code Mode
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('mode') === 'qr') {
+                // Hide tabs and QR generator button if opened via QR code
+                document.getElementById('navigationTabs').style.display = 'none';
+                document.getElementById('qrGeneratorBtn').style.display = 'none';
+            }
+        };
+
+        // Database
+        let database = { "Job No": {}, "Tool": {}, "General": {}, "Machine": {}, "Improvement": {} };
+        let currentActiveRecord = { category: "", id: "" };
+        let saveTimeout;
+        let videoStream = null;
+
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + tab).classList.add('active');
+            document.getElementById('btn-' + tab).classList.add('active');
+            if (tab === 'output') updateOutputDropdown();
+        }
+
+        function updateHeaderLabel() {
+            const cat = document.getElementById('regCategory').value;
+            document.getElementById('lblId').innerText = `Enter ${cat} Number`;
+            document.getElementById('colHeaderId').innerText = cat;
+        }
+
+        // Create or Load
+        function createOrLoadRecord() {
+            const category = document.getElementById('regCategory').value;
+            const id = document.getElementById('regId').value.trim();
+
+            if (!id) { alert("Please enter an ID / Number."); return; }
+
+            if (!database[category][id]) { database[category][id] = { detail: "", photoSrc: "", remark: "" }; }
+            currentActiveRecord = { category, id };
+            const data = database[category][id];
+
+            document.getElementById('entryWorkspace').style.display = "block";
+            document.getElementById('colHeaderId').innerText = category;
+
+            // Updated buttons: True Live Camera
+            document.getElementById('entryTableBody').innerHTML = `
+                <tr>
+                    <td class="id-cell">${id}</td>
+                    <td contenteditable="true" id="cellDetail" oninput="autoSave()">${data.detail}</td>
+                    <td>
+                        <div class="photo-actions">
+                            <label class="action-btn">
+                                📁 Upload File
+                                <input type="file" accept="image/*" onchange="processFileUpload(this)">
+                            </label>
+                            <button class="action-btn" onclick="openCameraModal()">📷 Live Camera</button>
+                        </div>
+                        <div id="imgContainer">
+                            ${data.photoSrc ? `<img src="${data.photoSrc}" class="img-preview" data-src="${data.photoSrc}">` : ''}
+                        </div>
+                    </td>
+                    <td contenteditable="true" id="cellRemark" oninput="autoSave()">${data.remark}</td>
+                </tr>
+            `;
+        }
+
+        // --- LIVE CAMERA LOGIC ---
+        function openCameraModal() {
+            const video = document.getElementById('liveVideo');
+            document.getElementById('cameraModal').style.display = 'flex';
+            
+            // Request camera access (prefers back camera on mobile)
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    videoStream = stream;
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    alert("Camera access denied or unavailable. Please check your browser permissions.");
+                    closeCameraModal();
+                });
+        }
+
+        function closeCameraModal() {
+            document.getElementById('cameraModal').style.display = 'none';
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        function takeSnapshot() {
+            const video = document.getElementById('liveVideo');
+            const canvas = document.createElement('canvas');
+            
+            // Set canvas to video dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to base64 image
+            const imgDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Put in UI
+            document.getElementById('imgContainer').innerHTML = `<img src="${imgDataUrl}" class="img-preview" data-src="${imgDataUrl}">`;
+            
+            // Cleanup and Save
+            closeCameraModal();
+            autoSave();
+        }
+
+        // --- FILE UPLOAD LOGIC ---
+        function processFileUpload(input) {
+            const container = document.getElementById('imgContainer');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    container.innerHTML = `<img src="${e.target.result}" class="img-preview" data-src="${e.target.result}">`;
+                    autoSave(); 
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- QR CODE LOGIC ---
+        function openQrModal() {
+            const container = document.getElementById('qrcode-container');
+            container.innerHTML = ""; // Clear old QR
+            
+            // Create URL with ?mode=qr appended
+            // Remove any existing parameters to avoid doubling up
+            let cleanUrl = window.location.href.split('?')[0]; 
+            let qrUrl = cleanUrl + "?mode=qr";
+
+            // Generate new QR using the library
+            new QRCode(container, {
+                text: qrUrl,
+                width: 200,
+                height: 200,
+                colorDark : "#0f4c81",
+                colorLight : "#ffffff",
+            });
+            
+            document.getElementById('qrModal').style.display = 'flex';
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        // --- AUTOSAVE & DASHBOARD ---
+        function autoSave() {
+            const { category, id } = currentActiveRecord;
+            if (!category || !id) return;
+
+            const detail = document.getElementById('cellDetail').innerText;
+            const remark = document.getElementById('cellRemark').innerText;
+            const imgTag = document.querySelector('#imgContainer img');
+            const photoSrc = imgTag ? imgTag.getAttribute('data-src') : "";
+
+            database[category][id] = { detail, photoSrc, remark };
+
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.opacity = '1';
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => { indicator.style.opacity = '0'; }, 1500);
+        }
+
+        function updateOutputDropdown() {
+            const select = document.getElementById('outputSelect');
+            const currentSelection = select.value;
+            select.innerHTML = `<option value="">-- Select an Item to View --</option>`;
+
+            let hasItems = false;
+            for (const category in database) {
+                const items = Object.keys(database[category]);
+                if (items.length > 0) {
+                    hasItems = true;
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = `--- ${category.toUpperCase()} ---`;
+                    items.forEach(id => {
+                        const option = document.createElement('option');
+                        option.value = `${category}|||${id}`; 
+                        option.textContent = id;
+                        if (currentSelection === `${category}|||${id}`) option.selected = true;
+                        optgroup.appendChild(option);
+                    });
+                    select.appendChild(optgroup);
+                }
+            }
+            if (!hasItems) select.innerHTML = `<option value="">-- No Items Registered --</option>`;
+            else if (currentSelection) renderOutputTable(currentSelection);
+        }
+
+        function renderOutputTable(selectedValue) {
+            const tbody = document.getElementById('outputTableBody');
+            if (!selectedValue) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Select an item from the dropdown to view its details.</td></tr>`;
+                document.getElementById('outColHeaderId').innerText = "ID / Number";
+                return;
+            }
+            const [category, id] = selectedValue.split('|||');
+            const data = database[category][id];
+            document.getElementById('outColHeaderId').innerText = category;
+            tbody.innerHTML = `
+                <tr>
+                    <td class="id-cell">${id}</td>
+                    <td style="white-space: pre-wrap;">${data.detail || '<span style="color:#aaa;font-style:italic;">No details provided</span>'}</td>
+                    <td>${data.photoSrc ? `<img src="${data.photoSrc}" class="img-preview" style="margin:0;">` : `<span style="color:#aaa;font-style:italic;">No photo</span>`}</td>
+                    <td style="white-space: pre-wrap;">${data.remark || '<span style="color:#aaa;font-style:italic;">No remarks</span>'}</td>
+                </tr>
+            `;
+        }
+
+        updateHeaderLabel();
+    </script>
+</body>
+</html>
